@@ -5,10 +5,8 @@ var xhr = new XMLHttpRequest();
 xhr.open('GET', 'https://jsonmock.hackerrank.com/api/transactions/search?txnType=', true);
 xhr.onload = function () {
 if (this.status == 200) {
-		var userData = JSON.parse(this.responseText);
+		let userData = JSON.parse(this.responseText);
 		console.log(userData.data);
-		let totalPages = userData.total_pages;
-		return userData;
 } else if (xhr.status == 404) {
 		console.log('Request Not Found');
 		}
@@ -17,11 +15,10 @@ if (this.status == 200) {
 }
 
 async function getUserTransaction(uid, txnType, monthYear) {
-	let userData = await getData();
+	await getData();
 	//Main function code below...
 	let idsOfUserTransactions = [];
 	let debitCharges = [];
-	console.log(userData);
 	// Loop over all of our individual page data
      for (let i = 0; i < userData.data.length; i++){
        //convert timestamps to useable monthYear format
@@ -68,18 +65,6 @@ async function getUserTransaction(uid, txnType, monthYear) {
 }
 
 getUserTransaction();
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //
