@@ -1,70 +1,77 @@
 // jshint esversion: 10
+let url = 'https://jsonmock.hackerrank.com/api/transactions/search?txnType=';
 
-function getData() {
-var xhr = new XMLHttpRequest();
-xhr.open('GET', 'https://jsonmock.hackerrank.com/api/transactions/search?txnType=', true);
-xhr.onload = function () {
-if (this.status == 200) {
-		let userData = JSON.parse(this.responseText);
-		console.log(userData.data);
-} else if (xhr.status == 404) {
-		console.log('Request Not Found');
-		}
-	};
-	xhr.send();
+function fetchData(url) {
+  return new Promise(function(resolve, reject) {
+    var request = new XMLHttpRequest();
+    request.open("GET", url);
+    request.onload = function() {
+      resolve(this.responseText);
+			console.log(JSON.parse(this.responseText));
+    };
+    request.onerror = function() {
+      reject("Network error!");
+    };
+    request.send();
+  });
 }
 
 async function getUserTransaction(uid, txnType, monthYear) {
-	await getData();
-	//Main function code below...
-	let idsOfUserTransactions = [];
-	let debitCharges = [];
+	let userData = JSON.parse(await fetchData(url));
+	let totalPages = userData.total_pages;
+	console.log(totalPages);
+	console.log('user data', userData);
+	let arrayOfCharges = [];
+	//Loop over each page of 30
+	for (let i = 0; i < totalPages; i++){
+	userData = JSON.parse(await fetchData(url + '&page=' + i));
 	// Loop over all of our individual page data
      for (let i = 0; i < userData.data.length; i++){
        //convert timestamps to useable monthYear format
        let newTimeStamp = new Date(userData.data[i].timestamp);
-       let month = newTimeStamp.getMonth().toString().padStart(2, '0');
-       let year = newTimeStamp.getFullYear();
-       let transactionMonthYear = month + '-' + year;
+       let month = (newTimeStamp.getUTCMonth() + 1).toString().padStart(2, '0');
+       let year = newTimeStamp.getUTCFullYear();
+       userData.data[i].transactionMonthYear = month + '-' + year;
        //If the data the data parameters match the data in the array, move forward
-     // if (userData.data[i].userId == uid && userData.data[i].txnType == txnType && transactionMonthYear == monthYear) {
-       if (userData.data[i].userId == uid && userData.data[i].txnType == txnType) {
-           idsOfUserTransactions.push(userData.data[i].id);
-           debitCharges.push(userData.data[i].amount);
+		if (userData.data[i].userId == uid && userData.data[i].txnType == txnType) {
+				console.log(userData.data[i])
+				console.log(userData.data[i].transactionMonthYear);
+		};
+     if (userData.data[i].userId == uid && userData.data[i].txnType == txnType && userData.data[i].transactionMonthYear == monthYear) {
+					 arrayOfCharges.push(userData.data[i]);
+					 console.log(arrayOfCharges);
        }
      }
-
-     console.log(idsOfUserTransactions);
-     console.log(debitCharges);
-
+	 }
      //Turn debit charges into actual integers we can use
-     const chargeAsNum = debitCharges.map(charge => Number(charge.replace(/[^0-9\.]+/g,"")));
-     console.log(chargeAsNum);
-     //Get the total amount spent in this month
-     const reducer = (accumulator, currentValue) => accumulator + currentValue;
-     const totalSpentThisMonth = chargeAsNum.reduce(reducer);
-     //Get the average amount spent this month
-     const averageSpentThisMonth = totalSpentThisMonth / debitCharges.length;
-     //Get the charges that were less than this average to remove them from our array. Also get the index of the values removed so we can also remove the corresponding ids with the same values
-     for (let i = 0; i < chargeAsNum.length; i++) {
-       if (i < averageSpentThisMonth){
-         let chargeIndex = chargeAsNum.indexOf(i);
-         chargeAsNum.splice(chargeIndex);
-         console.log(chargeAsNum);
-         idsOfUserTransactions.splice(chargeIndex); //The charge amount and the id were added at the same time and have the same indexes in their arrays.
-         console.log(idsOfUserTransactions);
-       }
-     }
+    arrayOfCharges.forEach(charge => {
+			  charge.chargeAsNum = Number(charge.amount.replace(/[^0-9\.]+/g,""));
+		 })
 
-     console.log(totalSpentThisMonth);
-     console.log(averageSpentThisMonth);
+
+     //Get the total amount spent in this month
+     const reducer = (accumulator, currentValue) => accumulator + currentValue.chargeAsNum;
+     const totalSpentThisMonth = arrayOfCharges.reduce(reducer, 0);
+     //Get the average amount spent this month
+     const averageSpentThisMonth = totalSpentThisMonth / arrayOfCharges.length;
+     //Get the charges that were less than this average to remove them from our array. Also get the index of the values removed so we can also remove the corresponding ids with the same values
+
+		 const filteredTransactions = arrayOfCharges.filter(charge => {
+			 return charge.chargeAsNum > averageSpentThisMonth;
+		 });
+
+		 console.log(filteredTransactions);
+		 console.log(totalSpentThisMonth);
+		 console.log(averageSpentThisMonth);
 
      //sort the ids of the over budget transactions in descending order
-     const finalIdArray = idsOfUserTransactions.sort();
+     const finalIdArray = filteredTransactions.sort();
      console.log(finalIdArray);
+		 return finalIdArray;
 }
 
-getUserTransaction();
+getUserTransaction(4, 'debit', '02-2019');
+
 
 
 //
@@ -75,7 +82,7 @@ getUserTransaction();
 // xhr.onload = function () {
 // 	if (this.status == 200){
 //     var userData = JSON.parse(this.responseText);
-//     console.log(userData.data);
+//     console.log(userData);
 //     let totalPages = userData.total_pages;
 //
 //     let idsOfUserTransactions = [];
@@ -84,7 +91,7 @@ getUserTransaction();
 // //loop over each of the 30 pages with the same function
 // for (let i = 1; i < totalPages; i++) {
 //   let currentPage = i;
-//   let url = `https://jsonmock.hackerrank.com/api/transactions/search?txnType=&page=` + currentPage;
+//   let url = `https://jsonmock.hackerrank.com/api/transactions/search?&page=` + currentPage;
 //   xhr.open('GET', url, true);
 //     //Loop over all of our individual page data
 //     for (let i = 0; i < userData.data.length; i++){
