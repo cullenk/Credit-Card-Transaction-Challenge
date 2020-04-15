@@ -1,5 +1,11 @@
 // jshint esversion: 10
 let url = 'https://jsonmock.hackerrank.com/api/transactions/search?txnType=';
+const searchForm = document.querySelector('.search-form');
+const getResultsButton = document.querySelector('.get-results-button');
+const userId = document.querySelector('.user-id');
+const txn = document.querySelector('.txn-type');
+const date = document.querySelector('.month-year');
+const responseData = document.querySelector('.response-data');
 
 function fetchData(url) {
   return new Promise(function(resolve, reject) {
@@ -18,9 +24,7 @@ function fetchData(url) {
 
 async function getUserTransaction(uid, txnType, monthYear) {
 	let userData = JSON.parse(await fetchData(url));
-	let totalPages = userData.total_pages;
-	console.log(totalPages);
-	console.log('user data', userData);
+	let totalPages = userData.total_pages + 1;
 	let arrayOfCharges = [];
 	//Loop over each page of 30
 	for (let i = 0; i < totalPages; i++){
@@ -33,13 +37,8 @@ async function getUserTransaction(uid, txnType, monthYear) {
        let year = newTimeStamp.getUTCFullYear();
        userData.data[i].transactionMonthYear = month + '-' + year;
        //If the data the data parameters match the data in the array, move forward
-		if (userData.data[i].userId == uid && userData.data[i].txnType == txnType) {
-				console.log(userData.data[i])
-				console.log(userData.data[i].transactionMonthYear);
-		};
      if (userData.data[i].userId == uid && userData.data[i].txnType == txnType && userData.data[i].transactionMonthYear == monthYear) {
 					 arrayOfCharges.push(userData.data[i]);
-					 console.log(arrayOfCharges);
        }
      }
 	 }
@@ -60,9 +59,9 @@ async function getUserTransaction(uid, txnType, monthYear) {
 			 return charge.chargeAsNum > averageSpentThisMonth;
 		 });
 
-		 console.log(filteredTransactions);
 		 console.log(totalSpentThisMonth);
 		 console.log(averageSpentThisMonth);
+     console.log(filteredTransactions);
 
      //sort the ids of the over budget transactions in descending order
      const finalIdArray = filteredTransactions.sort();
@@ -70,7 +69,40 @@ async function getUserTransaction(uid, txnType, monthYear) {
 		 return finalIdArray;
 }
 
-getUserTransaction(4, 'debit', '02-2019');
+
+
+getResultsButton.addEventListener('click', (e) => {
+e.preventDefault();
+let uid = parseInt(userId.value);
+let txnType = txn.value;
+let monthYear = date.value;
+
+responseData.innerHTML = ``;
+
+let results = getUserTransaction(uid, txnType, monthYear);
+
+var getResults = function() {
+  return new Promise(function(resolve){
+    resolve(results);
+  });
+};
+
+async function displayResults () {
+  var result = await getResults();
+  for (let i = 0; i < result.length; i++){
+  responseData.innerHTML += `
+    <div class="response-id">${result[i].id}</div>
+  `;
+ }
+}
+
+displayResults();
+searchForm.reset();
+});
+
+
+
+// getUserTransaction(4, 'debit', '02-2019');
 
 
 
