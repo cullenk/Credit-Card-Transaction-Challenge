@@ -5,8 +5,12 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: lightgreen;
   font-family: 'Oxygen', sans-serif;
+  height: 100vh;
+  background-image: url('bg.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .container {
@@ -66,14 +70,14 @@ body {
 }
 
 .response {
-  border-top: 3px solid black;
-  border-bottom: 3px solid black;
+  border: 3px solid black;
   margin-top: 20px;
   padding: 20px;
   width: 100%;
+  max-width: 800px;
   height: auto;
   text-align: center;
-  background-color: #009933;
+  background: linear-gradient(#009933, #3f87a6);;
   font-size: 18px;
 }
 
@@ -82,8 +86,13 @@ body {
 }
 
 .response-data {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
   background-color: white;
+  min-height: 100px;
   padding: 5px;
   margin: 10px;
   border-radius: 5px;
+  border: 1px solid black;
 }
